@@ -1,0 +1,69 @@
+<div th:fragment="navbar" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <nav class="navbar navbar-expand-lg bg-light">
+        <div class="container-fluid">
+
+            <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
+                <ul class="navbar-nav">
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link" th:href="@{/mvc/admin/users}">Users</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link" th:href="@{/mvc/admin/logs}">Logs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/mvc/public/post/home}">Home</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN') or hasRole('USER')">
+                        <a class="nav-link" th:href="@{/mvc/public/post/my}">My posts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/mvc/public/post/search}">Search</a>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav position-relative">
+                    <li class="nav-item position-relative"
+                        th:if="${#authentication != null and #authentication.principal != 'anonymousUser' and #authentication.principal instanceof T(hr.algebra.postagram.models.CustomUserDetails)}">
+                        <a class="nav-link" id="userIcon">
+                            <i class="bi bi-person-circle fs-2"></i>
+                        </a>
+                        <div id="userDropdown" class="user-dropdown">
+                            <p>
+                                Logged in as:
+                                <a href="/auth/profile" th:text="${#authentication.principal.username}">Username</a>
+                            </p>
+                            <a th:href="@{/logout}">Logout</a>
+                        </div>
+                    </li>
+
+                    <!-- Anonymous user: link directly to login page -->
+                    <li class="nav-item"
+                        th:if="${#authentication == null or #authentication.principal == 'anonymousUser'}">
+                        <a class="nav-link" th:href="@{/auth/login}">
+                            <i class="bi bi-person-circle fs-1" style="font-size: 1.75rem;"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <style>
+        .user-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 5px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: .5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: none;
+            min-width: 200px;
+            z-index: 1000;
+        }
+        .user-dropdown.active {
+            display: block;
+        }
+    </style>
+    <script type="module" th:src="@{/js/dropdown.js}"></script>
+</div>
