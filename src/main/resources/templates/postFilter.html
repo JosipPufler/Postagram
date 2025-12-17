@@ -2,11 +2,10 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Home</title>
-    <link href="jquery-ui.min.css" rel="stylesheet">
+    <title>Search</title>
     <link href="/css/jquery.comiseo.daterangepicker.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/jquery-ui.min.js" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/themes/base/jquery-ui.min.css" rel="stylesheet">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link
@@ -30,31 +29,45 @@
     <div class="form-container">
         <h2 class="text-center mb-4">Search Posts</h2>
 
-        <form th:action="@{/mvc/public/post/search}" th:object="${searchForm}" method="get">
+        <form th:action="@{/mvc/public/post/search/submit}" th:object="${searchForm}" method="get">
             <div class="form-group">
                 <label for="author">Author</label>
                 <input type="text" th:field="*{authorName}" class="form-control" id="author">
             </div>
 
             <div class="form-group">
-                <label for="posted">Posted at</label>
-                <input type="datetime-local" class="form-control" id="posted">
+                <label for="posted">Posted between</label>
+
+                <div class="input-group">
+                    <input type="text"
+                           id="posted"
+                           name="posted"
+                           class="form-control"
+                           readonly
+                           placeholder="Select date range">
+                    <input type="text"
+                           id="postedDisplay"
+                           name="postedDisplay"
+                           class="form-control"
+                           readonly
+                           placeholder="Select date range">
+                </div>
             </div>
 
-            <input type="datetime-local" class="hidden" th:field="*{rangeStart}">
-            <input type="datetime-local" class="hidden" th:field="*{rangeEnd}">
+            <input type="datetime-local" th:field="*{rangeEnd}" style="display: none"/>
+            <input type="datetime-local" th:field="*{rangeStart}" style="display: none"/>
 
             <div class="form-group">
-                <label for="genres">Genres</label>
+                <label for="genres">Format</label>
                 <select multiple class="form-control select2" th:field="*{aspectRatio}" id="genres">
-                    <option value="square"></option>
-                    <option value="wide"></option>
-                    <option value="tall"></option>
+                    <option value="square">Square</option>
+                    <option value="wide">Wide</option>
+                    <option value="tall">Tall</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label for="hashtags">Hashtags (comma-separated)</label>
+                <label for="hashtags">Hashtags</label>
                 <select class="form-control select2" id="hashtags" th:field="*{hashtags}" multiple>
                     <option th:each="option : ${hashtags}"
                             th:value="${option}"
@@ -71,17 +84,13 @@
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js" integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ENjdO4Dr2bkBIFxQpeoYj3lOJD2u9K5QTHO1EMx5YhkKQG7Skv7vZtM1QG5W3y5L"
-        crossorigin="anonymous"
-></script>
+<script src="https://code.jquery.com/ui/1.14.1/jquery-ui.min.js"></script>
+
 <script src="/js/moment.js"></script>
 <script src="/js/jquery.comiseo.daterangepicker.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js" integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
     $(document).ready(function () {
         $('.select2').select2({
@@ -89,7 +98,35 @@
         });
     });
 
-    $(function() { $("#dateRange").daterangepicker(); });
+    $(function () {
+        const $rangeStart = $("#rangeStart");
+        const $rangeEnd   = $("#rangeEnd");
+        const $input = $("#posted");
+        const $inputDisplay = $("#postedDisplay");
+
+        $input.daterangepicker({
+            applyOnMenuSelect: false,
+            autoUpdateInput: false
+        });
+
+        $input.on("change", function (e, data) {
+
+            const picker = $input.data("comiseoDaterangepicker");
+            const range = picker._dateRangePicker.getRange()
+
+            const start = range.start;
+            const end   = range.end;
+
+            $inputDisplay.val(
+                moment(start).format("DD-MM-YYYY") +
+                " → " +
+                moment(end).format("DD-MM-YYYY")
+            );
+
+            $rangeStart.val(moment(start).format("YYYY-MM-DDTHH:mm"));
+            $rangeEnd.val(moment(end).format("YYYY-MM-DDTHH:mm"));
+        });
+    });
 </script>
 </body>
 </html>

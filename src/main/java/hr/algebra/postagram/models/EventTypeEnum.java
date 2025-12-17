@@ -5,5 +5,7 @@ public enum EventTypeEnum {
     LOGIN,
     LOGOUT,
     HASHTAG,
-    CHANGE_PACKAGE
+    CHANGE_PACKAGE,
+    USER_PROFILE_UPDATE,
+    ADMIN_POST_UPDATE
 }

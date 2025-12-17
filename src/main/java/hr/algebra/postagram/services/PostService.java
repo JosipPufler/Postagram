@@ -4,10 +4,12 @@ import hr.algebra.postagram.models.Hashtag;
 import hr.algebra.postagram.models.Post;
 import hr.algebra.postagram.models.User;
 import hr.algebra.postagram.models.dtos.PostSearchForm;
+import hr.algebra.postagram.models.specifications.PostSpecification;
 import hr.algebra.postagram.repositories.PostRepo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
 
@@ -17,9 +19,11 @@ import java.util.*;
 @SessionScope
 public class PostService extends GeneralCrudService<Post, PostRepo>{
     private final Set<Long> seenPosts = new HashSet<>();
+    private final PostRepo postRepo;
 
-    public PostService(PostRepo repository) {
+    public PostService(PostRepo repository, PostRepo postRepo) {
         super(repository);
+        this.postRepo = postRepo;
     }
 
     public Page<Post> findByUserPaged(User user, int pageNumber, int pageSize) {
@@ -28,8 +32,10 @@ public class PostService extends GeneralCrudService<Post, PostRepo>{
         return repository.findByUser(user, pageable);
     }
 
-    public List<Post> getByHashtag(HashSet<Hashtag> hashtags) {
-        return repository.findByHashtag(hashtags);
+    public Page<Post> getLatestPaged(int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+        return repository.getLatest(pageable);
     }
 
     public List<Post> getRandomPosts(int limit) {
@@ -47,14 +53,33 @@ public class PostService extends GeneralCrudService<Post, PostRepo>{
         seenPosts.add(post.getId());
     }
 
-    public List<Post> getLatest(int limit) {
-        return repository.getLatest(limit);
-    }
+    public List<Post> filterPosts(PostSearchForm form) {
+        Specification<Post> spec = Specification.unrestricted();
 
-    public List<Post> getPostsBySearchForm(PostSearchForm form) {
-        if (!form.getHashtags().isEmpty()){
-            return repository.getBySearchParams(form.getRangeStart(), form.getRangeEnd(), form.getAuthorName(), form.getAspectRatio(), form.getHashtags());
+        if(form.getAuthorName() != null && !form.getAuthorName().isEmpty()) {
+            spec = spec.and(PostSpecification.isAuthorLike(form.getAuthorName()));
         }
-        return repository.getBySearchParams(form.getRangeStart(), form.getRangeEnd(), form.getAuthorName(), form.getAspectRatio());
+
+        if(form.getAspectRatio() != null && !form.getAspectRatio().isEmpty()) {
+            spec = spec.and(PostSpecification.isAspectRatioLike(form.getAspectRatio()));
+        }
+
+        if(form.getRangeStart() != null && form.getRangeEnd() != null) {
+            spec = spec.and(PostSpecification.wasPostedBetween(form.getRangeStart(), form.getRangeEnd()));
+        }
+
+        List<Post> specFiltered = postRepo.findAll(spec);
+
+        if (form.getHashtags() != null && !form.getHashtags().isEmpty()) {
+            Set<Post> filtered = new HashSet<>(
+                    postRepo.findPostsByHashtags(form.getHashtags().stream().map(hashtag -> hashtag.replaceAll("[^A-Za-z0-9]","")).toList(), form.getHashtags().size())
+            );
+
+            specFiltered = specFiltered.stream()
+                    .filter(filtered::contains)
+                    .toList();
+        }
+
+        return specFiltered;
     }
 }

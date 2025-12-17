@@ -5,33 +5,34 @@ import hr.algebra.postagram.models.Post;
 import hr.algebra.postagram.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
 
 public interface PostRepo extends JpaRepository<Post, Long> {
-    List<Post> findByUser(User user);
     Page<Post> findByUser(User user, Pageable pageable);
-    default List<Post> findByHashtag(HashSet<Hashtag> hashtags) {
-        return findAll().stream().filter(post -> post.getHashtags().containsAll(hashtags)).toList();
-    }
+    List<Post> findAll(Specification<Post> specification);
+
     @Query(value = "SELECT * FROM posts WHERE id NOT IN (:excludeIds) ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
     List<Post> findRandomPostsExcluding(@Param("excludeIds") List<Long> excludeIds, @Param("limit") int limit);
+
     @Query(value = """
-    SELECT DISTINCT p.*
+    SELECT p.*
     FROM posts p
     JOIN post_hashtag ph ON p.id = ph.post_id
     JOIN hashtags h ON h.id = ph.hashtag_id
     WHERE h.name IN (:hashtags)
-      AND p.id NOT IN (:excludeIds)
-    ORDER BY RANDOM()
-    LIMIT :limit
+    GROUP BY p.id
+    HAVING COUNT(DISTINCT h.name) = :size
 """, nativeQuery = true)
-    List<Post> findRandomPostsByHashtags(@Param("hashtags") List<String> hashtags, @Param("excludeIds") List<Long> excludeIds, @Param("limit") int limit);
+    List<Post> findPostsByHashtags(
+            @Param("hashtags") List<String> hashtags,
+            @Param("size") int size
+    );
 
     @Query(value = """
     SELECT DISTINCT p.*
@@ -39,9 +40,8 @@ public interface PostRepo extends JpaRepository<Post, Long> {
     JOIN post_hashtag ph ON p.id = ph.post_id
     JOIN hashtags h ON h.id = ph.hashtag_id
     ORDER BY p.posted_at
-    LIMIT :limit
 """, nativeQuery = true)
-    List<Post> getLatest(@Param("limit") int limit);
+    Page<Post> getLatest(Pageable pageable);
 
     @Query(value = """
     SELECT p.*

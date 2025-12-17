@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(unique = true, nullable = true)
+    @Column(unique = true)
     private String email;
 
     @Builder.Default
@@ -37,6 +38,10 @@ public class User {
     @Builder.Default
     @Column(nullable = false)
     private Long uploadedAmount = 0L;
+
+    public Double getUploadedAmountInMb() {
+        return (double)Math.round(uploadedAmount/100000.0) / 10;
+    }
 
     @Builder.Default
     @Column(nullable = false)
@@ -51,7 +56,13 @@ public class User {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "package_id", nullable = false)
-    Package userPackage;
+    private Package userPackage;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "next_package_id")
+    private Package nextPackage;
+
+    private LocalDateTime nextPackageActivationTime;
 
     public boolean canPublishPost(PostForm post){
         return uploadCount < userPackage.getMaxUploads() && userPackage.getMaxUploadSize() >= post.getImage().getSize();
@@ -65,5 +76,22 @@ public class User {
     @Override
     public String toString() {
         return username;
+    }
+
+    public void changePackage(Package newPackage) {
+        nextPackage = newPackage;
+        nextPackageActivationTime = LocalDateTime.now().plusDays(1);
+
+        adjustToPackage();
+    }
+
+    public void adjustToPackage() {
+        if (uploadCount > userPackage.getMaxUploads()){
+            uploadCount= userPackage.getMaxUploads();
+        }
+
+        if (uploadedAmount > userPackage.getMaxUploadSize()){
+            uploadedAmount = userPackage.getMaxUploadSize();
+        }
     }
 }

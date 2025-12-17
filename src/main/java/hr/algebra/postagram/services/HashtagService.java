@@ -21,9 +21,10 @@ public class HashtagService extends GeneralCrudService<Hashtag, HashtagRepo> {
     }
 
     public Hashtag findByNameOrCreate(String name, User user) {
-        Optional<Hashtag> byName = repository.findByName(name.replaceAll("[^A-Za-z0-9]",""));
+        String trimmedName = name.replaceAll("[^A-Za-z0-9]","");
+        Optional<Hashtag> byName = repository.findByName(trimmedName);
         return byName.orElseGet(() -> {
-            Hashtag save = repository.save(new Hashtag("#" + name.trim()));
+            Hashtag save = repository.save(new Hashtag(trimmedName));
             publisher.publishEvent(new HashtagEvent(user, save));
             return save;
         });

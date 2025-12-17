@@ -8,7 +8,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,18 +36,13 @@ public class Post {
     @Column(name = "posted_at")
     LocalDateTime postedAt;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(
             name = "post_hashtag",
             joinColumns = {@JoinColumn(name = "POST_ID", referencedColumnName = "ID")},
             inverseJoinColumns = {@JoinColumn(name = "HASHTAG_ID", referencedColumnName = "ID")}
     )
     Set<Hashtag> hashtags = new HashSet<>();
-
-    @Lob
-    @JdbcTypeCode(java.sql.Types.BINARY)
-    @Column(name = "image", columnDefinition = "BYTEA")
-    private byte[] image;
 
     @Column(name = "image_width")
     private Integer imageWidth;
@@ -54,15 +53,26 @@ public class Post {
     @Column(name = "aspect_ratio")
     private Double aspectRatio;
 
-    @Column(name = "image_content_type")
-    private String imageContentType;
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "image_id", nullable = false)
+    private String imageId;
+
     @Override
     public String toString(){
-        return imageContentType + " by " + user.getUsername() + ": " + description + ", " + postedAt;
+        return "Post by " + user.getUsername() + ": " + description + ", " + postedAt;
+    }
+
+    public void updateImageData(MultipartFile image) {
+        try {
+            BufferedImage buffered = ImageIO.read(image.getInputStream());
+            imageWidth = buffered.getWidth();
+            imageHeight = buffered.getHeight();
+            aspectRatio = (double)imageWidth/imageHeight;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

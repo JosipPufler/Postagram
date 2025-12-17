@@ -28,7 +28,7 @@ public class Package {
 
     @NotEmpty
     @Column(nullable = false)
-    private Integer maxUploadSize;
+    private Long maxUploadSize;
 
     @NotEmpty
     @Column(nullable = false)
@@ -37,5 +37,9 @@ public class Package {
     @Override
     public String toString() {
         return name;
+    }
+
+    public Double getMaxUploadSizeInMb() {
+        return (double)Math.round(maxUploadSize/100000.0) / 10;
     }
 }

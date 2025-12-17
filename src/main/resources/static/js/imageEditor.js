@@ -28,6 +28,9 @@ document.getElementById("clearBtn").addEventListener("click", () => {
         .forEach(c => {
             document.getElementById(c.toggle).checked = false;
         });
+
+    ctx.filter = "none";
+    ctx.drawImage(originalImage, 0, 0);
 });
 
 export function loadImage(src) {

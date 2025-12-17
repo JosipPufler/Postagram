@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Home</title>
+    <title>Users</title>
     <link  href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
@@ -64,8 +64,8 @@
             </thead>
             <tbody>
             <tr th:each="user : ${users}">
-                <td th:text="${user.id}"></td>
-                <td><a th:text="${user.username}" th:href="@{/mvc/admin/users/{id}(id=${user.username})}"></a></td>
+                <td><a th:text="${user.id}" th:href="@{/mvc/admin/users/{id}(id=${user.id})}"></a></td>
+                <td th:text="${user.username}"></td>
                 <td th:text="${user.email}"></td>
                 <td th:text="${user.packageName}"></td>
             </tr>

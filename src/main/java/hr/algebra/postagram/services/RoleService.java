@@ -3,10 +3,8 @@ package hr.algebra.postagram.services;
 import hr.algebra.postagram.models.Role;
 import hr.algebra.postagram.models.RoleEnum;
 import hr.algebra.postagram.repositories.RoleRepo;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service

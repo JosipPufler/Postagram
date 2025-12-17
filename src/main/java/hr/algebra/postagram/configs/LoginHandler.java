@@ -14,6 +14,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Component
@@ -41,16 +42,27 @@ public class LoginHandler implements AuthenticationSuccessHandler {
             return;
         }
 
-        String ipAddress = request.getRemoteAddr();
-        publisher.publishEvent(new LoginEvent(byUsername.get(), ipAddress));
 
-        String token = jwtService.generateJwtToken(userDetailsService.loadUserByUsername(username), byUsername.get().getId());
+
+        String ipAddress = request.getRemoteAddr();
+        User user = byUsername.get();
+        publisher.publishEvent(new LoginEvent(user, ipAddress));
+
+        String token = jwtService.generateJwtToken(userDetailsService.loadUserByUsername(username), user.getId());
 
         Cookie jwtCookie = new Cookie("JWT_TOKEN", token);
         jwtCookie.setHttpOnly(false);
         jwtCookie.setPath("/");
         jwtCookie.setMaxAge(24 * 60 * 60); // 1 day
         response.addCookie(jwtCookie);
+
+        if (user.getNextPackageActivationTime() != null && user.getNextPackageActivationTime().isBefore(LocalDateTime.now())){
+            user.setUserPackage(user.getNextPackage());
+            user.setNextPackage(null);
+            user.setNextPackageActivationTime(null);
+            user.adjustToPackage();
+            userService.save(user);
+        }
 
         response.sendRedirect("/mvc/public/post/home");
     }

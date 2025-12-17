@@ -1,7 +1,5 @@
 package hr.algebra.postagram.configs;
 
-import hr.algebra.postagram.models.User;
-import hr.algebra.postagram.models.events.LoginEvent;
 import hr.algebra.postagram.models.events.LogoutEvent;
 import hr.algebra.postagram.services.UserService;
 import jakarta.servlet.http.Cookie;

@@ -43,6 +43,10 @@ public class UserService extends GeneralCrudService<User, UserRepo>{
         return findByUsername(username).isPresent();
     }
 
+    public Boolean emailExists(String email) {
+        return findByEmail(email).isPresent();
+    }
+
     @Transactional
     public User deactivateUser(User user) {
         user.setActive(false);
@@ -73,7 +77,7 @@ public class UserService extends GeneralCrudService<User, UserRepo>{
         User user = userById.get();
         user.setUsername(userDto.getUsername());
         user.setEmail(userDto.getEmail());
-        user.setUserPackage(packageById.get());
+        user.changePackage(packageById.get());
         repository.save(user);
     }
 }

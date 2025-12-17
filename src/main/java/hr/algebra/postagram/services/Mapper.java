@@ -20,11 +20,13 @@ public class Mapper {
     private final RoleService roleService;
     private final HashtagService hashtagService;
     private final PackageService packageService;
+    private final ImageService imageService;
 
-    public Mapper(RoleService roleService, HashtagService hashtagService, PackageService packageService){
+    public Mapper(RoleService roleService, HashtagService hashtagService, PackageService packageService, ImageService imageService){
         this.roleService = roleService;
         this.hashtagService = hashtagService;
         this.packageService = packageService;
+        this.imageService = imageService;
     }
 
     public UserDto userToDto(User user) {
@@ -54,9 +56,9 @@ public class Mapper {
         try {
             BufferedImage buffered = ImageIO.read(postForm.getImage().getInputStream());
             Post post = Post.builder()
+                    .id(postForm.getId())
                     .hashtags(postForm.getHashtags().stream().map(x -> hashtagService.findByNameOrCreate(x, user)).collect(Collectors.toCollection(HashSet::new)))
-                    .image(postForm.getImage() == null ? null : postForm.getImage().getBytes())
-                    .imageContentType(postForm.getImage() == null ? null : postForm.getImage().getContentType())
+                    .imageId(imageService.store(postForm.getImage().getBytes(), postForm.getImage().getContentType()))
                     .imageWidth(buffered.getWidth())
                     .imageHeight(buffered.getHeight())
                     .aspectRatio((double)buffered.getWidth()/buffered.getHeight())
@@ -91,5 +93,14 @@ public class Mapper {
                 .description(event.getDescription())
                 .username(event.getUser().getUsername())
                 .build();
+    }
+
+    public PackageUsageInfoDto userToPackageUsageInfo(User user) {
+        PackageUsageInfoDto packageUsageInfoDto = new PackageUsageInfoDto(user);
+        return packageUsageInfoDto;
+    }
+
+    public ImageData imageToImageData(Image image) {
+        return new ImageData(image.getImage(), image.getContentType());
     }
 }

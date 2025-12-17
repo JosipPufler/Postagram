@@ -2,7 +2,6 @@ package hr.algebra.postagram.models.events;
 
 import hr.algebra.postagram.models.EventTypeEnum;
 import hr.algebra.postagram.models.Hashtag;
-import hr.algebra.postagram.models.Post;
 import hr.algebra.postagram.models.User;
 
 import java.time.LocalDateTime;

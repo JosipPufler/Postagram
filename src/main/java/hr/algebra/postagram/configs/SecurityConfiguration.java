@@ -5,6 +5,7 @@ import hr.algebra.postagram.services.OAuth2FailHandler;
 import hr.algebra.postagram.services.OAuth2SuccessHandler;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -20,6 +21,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
 
 @Configuration
 @EnableAsync
@@ -116,6 +121,23 @@ public class SecurityConfiguration {
         auth
                 .userDetailsService(userDetailsService)
                 .passwordEncoder(encoder);
+    }
+
+    @Bean
+    public S3Client s3Client(
+            @Value("${aws.region}") String region,
+            @Value("${aws.access-key-id}") String accessKey,
+            @Value("${aws.secret-access-key}") String secretKey
+    ) {
+        AwsBasicCredentials creds =
+                AwsBasicCredentials.create(accessKey, secretKey);
+
+        return S3Client.builder()
+                .region(Region.of(region))
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(creds)
+                )
+                .build();
     }
 }
 

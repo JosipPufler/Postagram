@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class PostForm {
+    Long id;
     String description;
     List<String> hashtags;
     MultipartFile image;

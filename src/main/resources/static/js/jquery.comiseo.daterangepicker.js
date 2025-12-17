@@ -113,7 +113,7 @@
 
 		function init() {
 			fixReferences();
-			$self = $('<button type="button"></button>')
+			$self = $('<button type="button">Pick range</button>')
 				.addClass(classnameContext + '-triggerbutton')
 				.attr({'title': $originalElement.attr('title'), 'tabindex': $originalElement.attr('tabindex'), id: id})
 				.button({

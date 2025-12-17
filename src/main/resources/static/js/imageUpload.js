@@ -44,6 +44,7 @@ $(document).ready(function() {
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".post-tile").forEach(tile => {
         tile.addEventListener("click", () => openPostModal(tile));
+        console.log(tile)
     });
 });
 

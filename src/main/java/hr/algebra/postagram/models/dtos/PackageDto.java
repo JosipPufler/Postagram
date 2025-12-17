@@ -9,7 +9,7 @@ public class PackageDto {
         id = blPackage.getId();
         name = blPackage.getName();
         description = "Max uploads: " + blPackage.getMaxUploads() + "\n" +
-                "Max upload size: " + blPackage.getMaxUploadSize();
+                "Max upload size: " + blPackage.getMaxUploadSizeInMb() + "MB";
     }
 
     Long id;
