@@ -24,7 +24,7 @@ public class HashtagEvent implements IEvent{
 
     @Override
     public String getDescription() {
-        return "User " + user.getUsername() + "[id="+user.getId()+"] created hashtag \"#"+hashtag+"\"";
+        return "User " + user.getUsername() + "[id="+user.getId()+"] created hashtag \""+hashtag+"\"";
     }
 
     @Override

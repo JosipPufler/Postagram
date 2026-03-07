@@ -2,22 +2,18 @@ package hr.algebra.postagram.services;
 
 import hr.algebra.postagram.models.Image;
 import hr.algebra.postagram.models.ImageData;
-import hr.algebra.postagram.repositories.ImageRepository;
-import org.springframework.context.annotation.Profile;
+import hr.algebra.postagram.repositories.ImageRepo;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
+import java.util.Optional;
 
 @Service
-@Profile("db-storage")
 public class LocalImageService implements ImageService {
 
-    private final ImageRepository repo;
-    private final Mapper mapper;
+    private final ImageRepo repo;
 
-    public LocalImageService(ImageRepository repo, Mapper mapper) {
+    public LocalImageService(ImageRepo repo) {
         this.repo = repo;
-        this.mapper = mapper;
     }
 
     @Override
@@ -30,12 +26,13 @@ public class LocalImageService implements ImageService {
     }
 
     @Override
-    public ImageData load(String key) {
-        return mapper.imageToImageData(repo.findById(UUID.fromString(key)).orElseThrow());
+    public Optional<ImageData> load(String key) {
+        Optional<Image> byId = repo.findById(key);
+        return byId.map(image -> new ImageData(image.getImage(), image.getContentType()));
     }
 
     @Override
     public void delete(String key) {
-        repo.deleteById(UUID.fromString(key));
+        repo.deleteById(key);
     }
 }

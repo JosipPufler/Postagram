@@ -7,7 +7,6 @@ import hr.algebra.postagram.models.dtos.PackageDto;
 import hr.algebra.postagram.models.dtos.PostForm;
 import hr.algebra.postagram.models.events.AdminPostUpdate;
 import hr.algebra.postagram.models.events.AdminProfileUpdate;
-import hr.algebra.postagram.models.events.PostEvent;
 import hr.algebra.postagram.services.*;
 import jakarta.validation.Valid;
 import org.springframework.context.ApplicationEventPublisher;
@@ -31,7 +30,8 @@ public class AdminMvcController {
     private final UserService userService;
     private final PostService postService;
     private final HashtagService hashtagService;
-    private final ImageService imageService;
+    private final ImageStorageRouter imageStorageRouter;
+    private final ImageLoader imageLoader;
     private final ApplicationEventPublisher publisher;
     private final Mapper mapper;
     private static final String MODEL_ATTRIBUTE_LOGS = "logs";
@@ -51,13 +51,14 @@ public class AdminMvcController {
     private static final String MODEL_ATTRIBUTE_USER_DTO = "userDto";
     private static final String MODEL_ATTRIBUTE_PACKAGE_USAGE = "packageUsage";
 
-    public AdminMvcController(EventService eventService, PackageService packageService, UserService userService, PostService postService, HashtagService hashtagService, ImageService imageService, ApplicationEventPublisher publisher, Mapper mapper) {
+    public AdminMvcController(EventService eventService, PackageService packageService, UserService userService, PostService postService, HashtagService hashtagService, ImageStorageRouter imageStorageRouter, ImageLoader imageLoader, ApplicationEventPublisher publisher, Mapper mapper) {
         this.eventService = eventService;
         this.packageService = packageService;
         this.userService = userService;
         this.postService = postService;
         this.hashtagService = hashtagService;
-        this.imageService = imageService;
+        this.imageStorageRouter = imageStorageRouter;
+        this.imageLoader = imageLoader;
         this.publisher = publisher;
         this.mapper = mapper;
     }
@@ -143,9 +144,15 @@ public class AdminMvcController {
 
         Optional<Post> byId = postService.findById(postForm.getId());
         if(byId.isPresent() && adminById.isPresent()){
-            String store = imageService.store(postForm.getImage().getBytes(), postForm.getImage().getContentType());
             Post post = byId.get();
-            imageService.delete(post.getImageId());
+            String store = post.getImageId();
+
+            if (postForm.getImage() != null){
+                store = imageStorageRouter.getWriter().store(postForm.getImage().getBytes(), postForm.getImage().getContentType());
+                post.setStorageType(imageStorageRouter.getStorageType());
+                imageLoader.deleteImage(post);
+            }
+
             post.setImageId(store);
             post.updateImageData(postForm.getImage());
             post.setDescription(postForm.getDescription());

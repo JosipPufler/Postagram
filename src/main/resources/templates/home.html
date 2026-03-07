@@ -22,8 +22,21 @@
 
 <!-- Main body -->
 <div class="container py-11">
-    <div class="text-end mb-11" th:unless="${#authentication == null or #authentication.principal == 'anonymousUser'}">
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createPostModal">
+    <div class="d-flex justify-content-between align-items-center mb-11">
+        <form method="get" th:action="@{/mvc/public/post/home}" class="d-flex align-items-center gap-2">
+            <label for="sizeSelect" class="mb-0 text-muted">Posts per page:</label>
+
+            <select id="sizeSelect" name="size"  class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+
+                <option th:value="10" th:selected="${size == 10}">10</option>
+                <option th:value="20" th:selected="${size == 20}">20</option>
+                <option th:value="40" th:selected="${size == 40}">40</option>
+            </select>
+
+            <input type="hidden" name="page" value="0"/>
+        </form>
+
+        <button type="button" th:unless="${#authentication == null or #authentication.principal == 'anonymousUser'}" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createPostModal">
             <i class="bi bi-plus-circle"></i> Create New Post
         </button>
     </div>
@@ -32,7 +45,6 @@
         <h5 class="text-muted">Sorry, no posts found.</h5>
     </div>
     <div th:unless="${#lists.isEmpty(posts)}" class="post-grid mt-4" id="postList">
-        <!-- Iterate over posts -->
         <div class="post-tile"
              th:classappend="${post.aspectRatio > 1.2 ? 'wide' : (post.aspectRatio < 0.8 ? 'tall' : 'square')}"
              th:each="post : ${posts}"
@@ -48,8 +60,12 @@
 
                 <!-- Card body -->
                 <div class="card-body d-flex flex-column">
-                    <p class="card-text text-muted mb-1">
-                        <small th:utext="${post.author}">Author Name</small>
+                    <p class="card-text text-muted mb-1 author-line">
+                        <span class="author-name" th:text="${post.author}">Author</span>
+                        <span class="separator"> – </span>
+                        <span class="post-description"
+                              th:text="${post.description.length() > 50} ? ${post.description.substring(0, 50)} + '…' : ${post.description}">
+                        </span>
                     </p>
                     <p class="card-text mb-2">
                         <small class="text-secondary">
@@ -62,6 +78,37 @@
             </div>
         </div>
     </div>
+    <nav th:if="${totalPages > 1}" class="mt-4">
+        <ul class="pagination justify-content-center">
+
+            <!-- Previous -->
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/mvc/public/post/home(page=${currentPage - 1}, size=${size})}">
+                    Previous
+                </a>
+            </li>
+
+            <!-- Page numbers -->
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                th:classappend="${i == currentPage} ? 'active'">
+                <a class="page-link"
+                   th:text="${i + 1}"
+                   th:href="@{/mvc/public/post/home(page=${i}, size=${size})}">
+                </a>
+            </li>
+
+            <!-- Next -->
+            <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/mvc/public/post/home(page=${currentPage + 1}, size=${size})}">
+                    Next
+                </a>
+            </li>
+
+        </ul>
+    </nav>
 </div>
 
 <div class="modal fade" id="createPostModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="createPostModalLabel" aria-hidden="true">
@@ -210,5 +257,6 @@
 
 <script type="module" th:src="@{/js/imageEditor.js}"></script>
 <script type="module" th:src="@{/js/imageUpload.js}"></script>
+<script type="module" th:src="@{/js/listener.js}"></script>
 </body>
 </html>

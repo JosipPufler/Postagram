@@ -7,7 +7,6 @@ import hr.algebra.postagram.models.User;
 import hr.algebra.postagram.models.dtos.PostDto;
 import hr.algebra.postagram.models.dtos.PostForm;
 import hr.algebra.postagram.models.dtos.PostSearchForm;
-import hr.algebra.postagram.models.events.AdminPostUpdate;
 import hr.algebra.postagram.models.events.PostEvent;
 import hr.algebra.postagram.models.events.UserPostUpdate;
 import hr.algebra.postagram.services.*;
@@ -33,8 +32,10 @@ public class PostMvcController {
     private final HashtagService hashtagService;
     private final UserService userService;
     private final ApplicationEventPublisher publisher;
-    private final ImageService imageService;
+    private final ImageStorageRouter imageStorageRouter;
+    private final ImageLoader imageLoader;
     private final Mapper mapper;
+
     private static final String MODEL_ATTRIBUTE_POST_FORM = "postForm";
     private static final String MODEL_ATTRIBUTE_SEARCH_FORM = "searchForm";
     private static final String MODEL_ATTRIBUTE_POSTS = "posts";
@@ -49,12 +50,13 @@ public class PostMvcController {
     private static final String MODEL_ATTRIBUTE_CURRENT_PAGE = "currentPage";
 
 
-    public PostMvcController(PostService postService, HashtagService hashtagService, UserService userService, ApplicationEventPublisher publisher, ImageService imageService, Mapper mapper) {
+    public PostMvcController(PostService postService, HashtagService hashtagService, UserService userService, ApplicationEventPublisher publisher, ImageStorageRouter imageStorageRouter, ImageLoader imageLoader, Mapper mapper) {
         this.postService = postService;
         this.hashtagService = hashtagService;
         this.userService = userService;
         this.publisher = publisher;
-        this.imageService = imageService;
+        this.imageStorageRouter = imageStorageRouter;
+        this.imageLoader = imageLoader;
         this.mapper = mapper;
     }
 
@@ -74,14 +76,19 @@ public class PostMvcController {
     }
 
     @GetMapping("/home")
-    public String getHome(Model model, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
-        List<PostDto> randomPosts = postService.getLatestPaged(page, size).stream().map(mapper::postToDto).toList();
-        model.addAttribute(MODEL_ATTRIBUTE_POSTS, randomPosts);
+    public String getHome(Model model, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        Page<Post> paged = postService.getLatestPaged(page, size);
+        List<PostDto> posts = paged.stream().map(mapper::postToDto).toList();
+        model.addAttribute(MODEL_ATTRIBUTE_POSTS, posts);
+        model.addAttribute(MODEL_ATTRIBUTE_PAGES, paged.getTotalPages());
+        model.addAttribute(MODEL_ATTRIBUTE_CURRENT_PAGE, page);
+        model.addAttribute(MODEL_ATTRIBUTE_SIZE, size);
+
         return HOME_PAGE;
     }
 
     @GetMapping("/my")
-    public String getMyPosts(Model model, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+    public String getMyPosts(Model model, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         Long userId = ((CustomUserDetails) auth.getPrincipal()).getId();
         Optional<User> userById = userService.findById(userId);
@@ -105,9 +112,15 @@ public class PostMvcController {
 
         Optional<Post> byId = postService.findById(postForm.getId());
         if(byId.isPresent() && userById.isPresent() && Objects.equals(byId.get().getUser().getId(), userById.get().getId())){
-            String store = imageService.store(postForm.getImage().getBytes(), postForm.getImage().getContentType());
             Post post = byId.get();
-            imageService.delete(post.getImageId());
+            String store = post.getImageId();
+
+            if (postForm.getImage() != null){
+                store = imageStorageRouter.getWriter().store(postForm.getImage().getBytes(), postForm.getImage().getContentType());
+                post.setStorageType(imageStorageRouter.getStorageType());
+                imageLoader.deleteImage(post);
+            }
+
             post.setImageId(store);
             post.updateImageData(postForm.getImage());
             post.setDescription(postForm.getDescription());
@@ -161,8 +174,9 @@ public class PostMvcController {
 
         model.addAttribute(MODEL_ATTRIBUTE_POSTS, postService.getLatestPaged(page, size).stream().map(mapper::postToDto).toList());
         postService.save(post.get());
+        user.publishPost(postForm);
         userService.save(user);
-        publisher.publishEvent(new PostEvent(post.get()));
+
 
         return REDIRECT_TO_HOME_PAGE;
     }

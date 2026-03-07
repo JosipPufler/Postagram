@@ -7,5 +7,7 @@ public enum EventTypeEnum {
     HASHTAG,
     CHANGE_PACKAGE,
     USER_PROFILE_UPDATE,
-    ADMIN_POST_UPDATE
+    ADMIN_POST_UPDATE,
+    POST_OPEN,
+    POST_CLOSE,
 }

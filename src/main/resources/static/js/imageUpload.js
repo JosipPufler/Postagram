@@ -1,9 +1,25 @@
 import { loadImage } from './imageEditor.js'
+import {publishPostClosedEvent, publishPostOpenEvent,} from './listener.js'
 
+const createPostModalSelector = '#createPostModal'
+const postModalSelector = '#postModal'
+const formatSelector = '#format'
+const hashtagsSelector = '#hashtags'
 let cropper;
+let openedAt
+let postId
+
+$(postModalSelector)
+    .on('shown.bs.modal', function () {
+        openedAt = Date.now();
+    })
+    .on('hidden.bs.modal', function () {
+        const durationMs = Date.now() - openedAt;
+        publishPostClosedEvent(postId, durationMs/1000)
+    });
 
 function openPostModal(img) {
-    const postId = img.getAttribute("data-id");
+    postId = img.getAttribute("data-id");
     let src = `/rest/public/post/${postId}/image`;
     document.getElementById("postModalImage").src = src;
     loadImage(src)
@@ -12,22 +28,23 @@ function openPostModal(img) {
     document.getElementById("postModalDescription").textContent = img.dataset.description
     const date = new Date(img.dataset.date);
     const month = date.toLocaleString('default', { month: 'long' });
-    document.getElementById("postModalDate").textContent = date.getHours() + ":" + date.getMinutes() + ", " + String(date.getDate() + 1).padStart(2, "0") + " " + month + " " + date.getFullYear()
+    document.getElementById("postModalDate").textContent = date.getHours() + ":" +  String(date.getMinutes()).padStart(2, "0") + ", " + String(date.getDate() + 1).padStart(2, "0") + " " + month + " " + date.getFullYear()
     document.getElementById("postModalHashtags").textContent = img.dataset.hashtags
 
-    $('#postModal').modal('show')
+    $(postModalSelector).modal('show')
+    publishPostOpenEvent(postId)
 }
 
 function initSelect2() {
     $('#format').select2({
         width: '100%',
-        dropdownParent: $('#createPostModal'),
+        dropdownParent: $(createPostModalSelector),
         minimumResultsForSearch: Infinity
     });
 
-    $('#hashtags').select2({
+    $(hashtagsSelector).select2({
         width: '100%',
-        dropdownParent: $('#createPostModal'),
+        dropdownParent: $(createPostModalSelector),
         tags: true,
         createTag: function (params) {
             let text = params.term.trim();
@@ -58,8 +75,8 @@ document.getElementById("imageInput").addEventListener("change", function (e) {
 
     img.onload = function () {
         setTimeout(() => {
-            $('#format').select2('destroy');
-            $('#hashtags').select2('destroy');
+            $(formatSelector).select2('destroy');
+            $(hashtagsSelector).select2('destroy');
             initSelect2();
 
             const modalEl = document.getElementById('createPostModal');
@@ -97,7 +114,7 @@ document.getElementById("imageInput").addEventListener("change", function (e) {
         return;
     }
 
-    $('#format').val(normalized).trigger('change');
+    $(formatSelector).val(normalized).trigger('change');
 
 
 });
@@ -110,11 +127,11 @@ document.querySelector("form").addEventListener("submit", function (e) {
     cropper.getCroppedCanvas().toBlob(blob => {
         const fileInput = document.getElementById("imageInput");
 
-        const file = new File([blob], "image."+$("#format").select2('val'), { type: blob.type });
+        const file = new File([blob], "image."+$(formatSelector).select2('val'), { type: blob.type });
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(file);
         fileInput.files = dataTransfer.files;
 
         e.target.submit();
-    }, "image/"+$("#format").select2('val'), 0.9);
+    }, "image/"+$(formatSelector).select2('val'), 0.9);
 });

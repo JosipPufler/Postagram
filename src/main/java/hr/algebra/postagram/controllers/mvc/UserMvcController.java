@@ -14,16 +14,15 @@ import hr.algebra.postagram.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Controller
 @RequestMapping("/auth")
@@ -139,7 +138,7 @@ public class UserMvcController {
 
     @GetMapping("/register/oauth2")
     public String showOauth2PackageSelection(Model model) {
-        model.addAttribute(MODEL_ATTRIBUTE_PACKAGES, packageService.findAll().stream().map(mapper::packageToDto).toList());
+        model.addAttribute(MODEL_ATTRIBUTE_PACKAGES, packageService.findAll().stream().map(mapper::packageToDto).sorted(Comparator.comparing(PackageDto::getId)).toList());
         model.addAttribute("packageSelection", new PackageSelectionDto());
         return "register-oauth2";
     }
@@ -147,8 +146,22 @@ public class UserMvcController {
     @PostMapping("/register/oauth2")
     public String completeOauth2Registration(@ModelAttribute PackageSelectionDto packageSelection, HttpServletRequest request) {
         String username = (String) request.getSession().getAttribute("oauthUsername");
-        userService.registerOauthUser(packageSelection.getPackageId(), username);
+        String email = request.getSession().getAttribute("oauthEmail") == null ? "" : request.getSession().getAttribute("oauthEmail").toString();
+        Optional<User> user = userService.registerOauthUser(packageSelection.getPackageId(), username, email);
         request.getSession().removeAttribute("oauthEmail");
+
+        if (user.isPresent()) {
+            CustomUserDetails customUserDetails = new CustomUserDetails(user.get());
+            Authentication newAuth =
+                    new UsernamePasswordAuthenticationToken(
+                            customUserDetails,
+                            null,
+                            customUserDetails.getAuthorities()
+                    );
+
+            SecurityContextHolder.getContext().setAuthentication(newAuth);
+        }
+
         return "redirect:/mvc/public/post/home";
     }
 }

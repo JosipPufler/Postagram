@@ -36,11 +36,10 @@
                         </div>
                     </li>
 
-                    <!-- Anonymous user: link directly to login page -->
-                    <li class="nav-item"
+                    <li class="nav-item position-relative"
                         th:if="${#authentication == null or #authentication.principal == 'anonymousUser'}">
-                        <a class="nav-link" th:href="@{/auth/login}">
-                            <i class="bi bi-person-circle fs-1" style="font-size: 1.75rem;"></i>
+                        <a class="nav-link" id="userIconAnon" th:href="@{/auth/login}">
+                            <i class="bi bi-person-circle fs-2"></i>
                         </a>
                     </li>
                 </ul>

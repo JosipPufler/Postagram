@@ -16,6 +16,7 @@ public class PostDto {
         hashtags = post.getHashtags().stream().map(Hashtag::toString).toList();
         postTime = post.getPostedAt();
         aspectRatio = post.getAspectRatio();
+        storageType = post.getStorageType();
     }
 
     private Long id;
@@ -25,4 +26,5 @@ public class PostDto {
     private String author;
     private List<String> hashtags;
     private Double aspectRatio;
+    private String storageType;
 }

@@ -31,8 +31,10 @@ public class EventService extends GeneralCrudService<Event, EventRepo> {
         return repository.findByEventType(eventType);
     }
 
+    @Override
+    @Transactional
     public Event save(Event event) {
-        if(findById(event.getId()).isEmpty()) {
+        if(event.getId() == null || findById(event.getId()).isEmpty()) {
             return repository.saveAndFlush(event);
         }
         return null;
@@ -43,7 +45,7 @@ public class EventService extends GeneralCrudService<Event, EventRepo> {
                         .eventType(eventTypeService.findByEnum(iEvent.getEventType()))
                         .time(iEvent.getTimestamp())
                         .description(iEvent.getDescription())
-                        .user(iEvent.getUser())
+                        .user(iEvent.getUser().getId())
                         .build());
     }
 }

@@ -3,6 +3,7 @@ package hr.algebra.postagram.services;
 import hr.algebra.postagram.models.EventType;
 import hr.algebra.postagram.models.EventTypeEnum;
 import hr.algebra.postagram.repositories.EventTypeRepo;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -17,6 +18,11 @@ public class EventTypeService extends GeneralCrudService<EventType, EventTypeRep
         return repository.findByName(name);
     }
 
+    public EventType findByNameOrCreate(String name) {
+        return repository.findByName(name).orElseGet(() -> save(new EventType(name)));
+    }
+
+    @Transactional
     public EventType findByEnum(EventTypeEnum eventTypeEnum) {
         return repository.findByName(eventTypeEnum.name()).orElseGet(() -> save(new EventType(eventTypeEnum.name())));
     }

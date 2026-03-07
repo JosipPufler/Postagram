@@ -23,9 +23,8 @@ public class Event {
     @JoinColumn(name = "event_type_id", nullable = false)
     EventType eventType;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id", nullable = false)
-    User user;
+    @Column(name = "user_id")
+    Long user;
 
     @Column(nullable = false)
     String description;
@@ -35,6 +34,6 @@ public class Event {
 
     @Override
     public String toString() {
-        return "Event [id=" + id + ", eventType=" + eventType + ", description=" + description + ", time=" + time + ", user=" + user.getUsername() + "]";
+        return "Event [id=" + id + ", eventType=" + eventType + ", description=" + description + ", time=" + time + ", userID=" + user + "]";
     }
 }

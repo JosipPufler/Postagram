@@ -20,13 +20,15 @@ public class Mapper {
     private final RoleService roleService;
     private final HashtagService hashtagService;
     private final PackageService packageService;
-    private final ImageService imageService;
+    private final ImageStorageRouter imageStorageRouter;
+    private final UserService userService;
 
-    public Mapper(RoleService roleService, HashtagService hashtagService, PackageService packageService, ImageService imageService){
+    public Mapper(RoleService roleService, HashtagService hashtagService, PackageService packageService, ImageStorageRouter imageStorageRouter, UserService userService){
         this.roleService = roleService;
         this.hashtagService = hashtagService;
         this.packageService = packageService;
-        this.imageService = imageService;
+        this.imageStorageRouter = imageStorageRouter;
+        this.userService = userService;
     }
 
     public UserDto userToDto(User user) {
@@ -58,13 +60,14 @@ public class Mapper {
             Post post = Post.builder()
                     .id(postForm.getId())
                     .hashtags(postForm.getHashtags().stream().map(x -> hashtagService.findByNameOrCreate(x, user)).collect(Collectors.toCollection(HashSet::new)))
-                    .imageId(imageService.store(postForm.getImage().getBytes(), postForm.getImage().getContentType()))
+                    .imageId(imageStorageRouter.getWriter().store(postForm.getImage().getBytes(), postForm.getImage().getContentType()))
                     .imageWidth(buffered.getWidth())
                     .imageHeight(buffered.getHeight())
                     .aspectRatio((double)buffered.getWidth()/buffered.getHeight())
                     .description(postForm.getDescription())
                     .postedAt(LocalDateTime.now())
                     .user(user)
+                    .storageType(imageStorageRouter.getStorageType())
                     .build();
             return Optional.of(post);
         } catch (IOException e) {
@@ -85,22 +88,19 @@ public class Mapper {
     }
 
     public EventDto eventToDto(Event event) {
+        Optional<User> byId = userService.findById(event.getUser());
         return EventDto.builder()
                 .id(event.getId())
                 .eventType(event.getEventType().getName())
                 .createdAt(event.getTime())
-                .userId(event.getUser().getId())
+                .userId(event.getUser())
                 .description(event.getDescription())
-                .username(event.getUser().getUsername())
+                .username(byId.isPresent() ? byId.get().getUsername() : "Not found")
                 .build();
     }
 
     public PackageUsageInfoDto userToPackageUsageInfo(User user) {
         PackageUsageInfoDto packageUsageInfoDto = new PackageUsageInfoDto(user);
         return packageUsageInfoDto;
-    }
-
-    public ImageData imageToImageData(Image image) {
-        return new ImageData(image.getImage(), image.getContentType());
     }
 }

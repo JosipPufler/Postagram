@@ -60,12 +60,12 @@ public class UserService extends GeneralCrudService<User, UserRepo>{
     }
 
     @Transactional
-    public void registerOauthUser(Long packageId, String username) {
+    public Optional<User> registerOauthUser(Long packageId, String username, String email) {
         Optional<Package> byId = packageService.findById(packageId);
         if (byId.isEmpty())
-            return;
-        User build = User.builder().userPackage(byId.get()).username(username).password("").roles(List.of(roleService.findByEnum(RoleEnum.USER))).build();
-        repository.save(build);
+            Optional.empty();
+        User build = User.builder().userPackage(byId.get()).username(username).email(email).password("").roles(List.of(roleService.findByEnum(RoleEnum.USER))).build();
+        return Optional.of(repository.save(build));
     }
 
     public void saveFromDto(UserDto userDto) {

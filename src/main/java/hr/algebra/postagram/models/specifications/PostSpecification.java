@@ -31,6 +31,12 @@ public class PostSpecification {
     }
 
     public static Specification<Post> wasPostedBetween(LocalDateTime rangeStart, LocalDateTime rangeEnd){
-        return (root, query, cb) -> cb.between(root.get("postedAt"), rangeStart, rangeEnd);
+        LocalDateTime start = rangeStart.toLocalDate().atStartOfDay();
+        LocalDateTime end = rangeEnd.toLocalDate().plusDays(1).atStartOfDay();
+
+        return (root, query, cb) -> cb.and(
+                cb.greaterThanOrEqualTo(root.get("postedAt"), start),
+                cb.lessThan(root.get("postedAt"), end)
+        );
     }
 }

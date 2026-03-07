@@ -11,6 +11,7 @@ canvas {
     grid-template-columns: repeat(4, 1fr);
     grid-auto-rows: 500px;
     gap: 1rem;
+    grid-auto-flow: row dense;
 }
 
 .filters-panel {
@@ -41,6 +42,10 @@ canvas {
     transform: none !important;
 }
 
+#postModal .modal-dialog {
+    max-width: 80vw;
+}
+
 .container {
     margin-right: auto;
     margin-left: auto;
@@ -56,6 +61,10 @@ canvas {
 .post-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+
+.card-body {
+    overflow: hidden;
 }
 
 .post-image {
@@ -125,4 +134,25 @@ canvas {
 
 .modal-dialog-scrollable .modal-content {
     overflow-y: auto;
+}
+
+.author-line {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    width: 100%;
+    min-width: 0;
+}
+
+.author-name {
+    flex-shrink: 0;
+    font-weight: bold;
+}
+
+.post-description {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }

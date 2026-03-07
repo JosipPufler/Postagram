@@ -60,6 +60,9 @@ public class Post {
     @Column(name = "image_id", nullable = false)
     private String imageId;
 
+    @Column(name = "storageType", nullable = false, columnDefinition = "S3")
+    private String storageType;
+
     @Override
     public String toString(){
         return "Post by " + user.getUsername() + ": " + description + ", " + postedAt;

@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const icon     = document.getElementById('userIcon');
+    const icon= document.getElementById('userIcon');
     const dropdown = document.getElementById('userDropdown');
-    if (!icon) return;            // if anonymous, no toggler present
+    if (!icon) return;
     icon.addEventListener('click', function (e) {
         e.preventDefault();
         dropdown.classList.toggle('active');

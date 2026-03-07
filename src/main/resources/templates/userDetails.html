@@ -18,7 +18,6 @@
 </head>
 <body class="bg-light">
 
-<!-- Navbar fragment -->
 <div th:replace="~{fragments/nav :: navbar}" xmlns:th="http://www.thymeleaf.org"
      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"></div>
 
@@ -142,7 +141,7 @@
                     <!-- Image upload -->
                     <div class="form-group">
                         <label for="imageInput" class="form-label">Upload Image</label>
-                        <input type="file" th:field="*{image}" class="form-control" id="imageInput" accept="image/jpeg, image/png, image/bmp" required>
+                        <input type="file" th:field="*{image}" class="form-control" id="imageInput" accept="image/jpeg, image/png, image/bmp">
                     </div>
 
                     <div class="mt-3">
