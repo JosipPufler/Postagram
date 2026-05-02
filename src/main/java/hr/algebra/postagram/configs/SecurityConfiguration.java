@@ -81,7 +81,7 @@ public class SecurityConfiguration {
                 .formLogin(httpSecurityFormLoginConfigurer -> httpSecurityFormLoginConfigurer
                         .loginPage("/auth/login")
                         .loginProcessingUrl("/login")
-                        .failureUrl("/login?error=true")
+                        .failureUrl("/auth/login?error")
                         .successHandler(loginHandler)
                         .permitAll())
                 .oauth2Login(oauth2 -> oauth2

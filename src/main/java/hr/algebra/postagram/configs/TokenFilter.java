@@ -30,7 +30,7 @@ public class TokenFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getServletPath();
-        return path.startsWith("/rest/public/shop/book");
+        return path.startsWith("/auth");
     }
 
     @Override

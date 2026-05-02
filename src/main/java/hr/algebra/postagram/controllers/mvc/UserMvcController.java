@@ -35,9 +35,12 @@ public class UserMvcController {
     private static final String MODEL_ATTRIBUTE_USER_DTO = "userDto";
     private static final String MODEL_ATTRIBUTE_REGISTRATION_FORM = "registrationForm";
     private static final String MODEL_ATTRIBUTE_PACKAGE_USAGE = "packageUsage";
+    private static final String MODEL_ATTRIBUTE_OAUTH_EMAIL = "oauthEmail";
+    private static final String ERROR_USER_DTO = "error.userDto";
     private static final String REGISTER_PAGE = "register";
     private static final String PROFILE_PAGE = "profile";
     private static final String LOGIN_PAGE = "login";
+    private static final String REDIRECT_TO_LOGIN = "redirect:/auth/login";
 
     public UserMvcController(UserService userService, PackageService packageService, Mapper mapper, ApplicationEventPublisher publisher) {
         this.userService = userService;
@@ -74,11 +77,11 @@ public class UserMvcController {
     @PostMapping("/register")
     public String registerUser(@ModelAttribute("registrationForm") @Valid RegistrationForm registrationForm, BindingResult result) {
         if (!registrationForm.getPassword().equals(registrationForm.getConfirmPassword())) {
-            result.rejectValue("confirmPassword", "error.userDto", "Passwords do not match.");
+            result.rejectValue("confirmPassword", ERROR_USER_DTO, "Passwords do not match.");
         }
 
         if (userService.usernameExists(registrationForm.getUsername())) {
-            result.rejectValue("username", "error.userDto", "Username already exists.");
+            result.rejectValue("username", ERROR_USER_DTO, "Username already exists.");
         }
 
         if (result.hasErrors()) {
@@ -92,11 +95,15 @@ public class UserMvcController {
     @GetMapping("/profile")
     public String showProfile(Model model) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth.getPrincipal() instanceof String principal && "anonymousUser".equals(principal)){
+            return REDIRECT_TO_LOGIN;
+        }
+
         Long userId = ((CustomUserDetails) auth.getPrincipal()).getId();
         Optional<User> byId = userService.findById(userId);
 
         if (byId.isEmpty()) {
-            return "redirect:/auth/login";
+            return REDIRECT_TO_LOGIN;
         }
 
         List<Package> packages = packageService.findAll();
@@ -118,11 +125,11 @@ public class UserMvcController {
         }
 
         if (!Objects.equals(byId.get().getUsername(), userDto.getUsername()) && userService.usernameExists(userDto.getUsername())) {
-            result.rejectValue("username", "error.userDto", "Username already exists.");
+            result.rejectValue("username", ERROR_USER_DTO, "Username already exists.");
         }
 
         if (!Objects.equals(byId.get().getEmail(), userDto.getEmail()) && userService.emailExists(userDto.getEmail())) {
-            result.rejectValue("email", "error.userDto", "Email already exists.");
+            result.rejectValue("email", ERROR_USER_DTO, "Email already exists.");
         }
 
         if (result.hasErrors()) {
@@ -146,9 +153,9 @@ public class UserMvcController {
     @PostMapping("/register/oauth2")
     public String completeOauth2Registration(@ModelAttribute PackageSelectionDto packageSelection, HttpServletRequest request) {
         String username = (String) request.getSession().getAttribute("oauthUsername");
-        String email = request.getSession().getAttribute("oauthEmail") == null ? "" : request.getSession().getAttribute("oauthEmail").toString();
+        String email = request.getSession().getAttribute(MODEL_ATTRIBUTE_OAUTH_EMAIL) == null ? "" : request.getSession().getAttribute(MODEL_ATTRIBUTE_OAUTH_EMAIL).toString();
         Optional<User> user = userService.registerOauthUser(packageSelection.getPackageId(), username, email);
-        request.getSession().removeAttribute("oauthEmail");
+        request.getSession().removeAttribute(MODEL_ATTRIBUTE_OAUTH_EMAIL);
 
         if (user.isPresent()) {
             CustomUserDetails customUserDetails = new CustomUserDetails(user.get());

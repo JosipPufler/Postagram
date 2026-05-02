@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
@@ -60,8 +59,8 @@ public class Post {
     @Column(name = "image_id", nullable = false)
     private String imageId;
 
-    @Column(name = "storageType", nullable = false, columnDefinition = "S3")
-    private String storageType;
+    @Column(name = "storageType", nullable = false)
+    private String storageType = "S3";
 
     @Override
     public String toString(){

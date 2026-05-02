@@ -1,12 +1,13 @@
 package hr.algebra.postagram.services;
 
-import hr.algebra.postagram.models.Hashtag;
 import hr.algebra.postagram.models.Post;
 import hr.algebra.postagram.models.User;
 import hr.algebra.postagram.models.dtos.PostSearchForm;
 import hr.algebra.postagram.models.events.PostEvent;
 import hr.algebra.postagram.models.specifications.PostSpecification;
 import hr.algebra.postagram.repositories.PostRepo;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,12 +21,14 @@ import java.util.*;
 @Service
 @SessionScope
 public class PostService extends GeneralCrudService<Post, PostRepo>{
+    private final Counter postCounter;
     private final Set<Long> seenPosts = new HashSet<>();
     private final PostRepo postRepo;
     private final ApplicationEventPublisher eventPublisher;
 
-    public PostService(PostRepo repository, PostRepo postRepo, ApplicationEventPublisher eventPublisher) {
+    public PostService(PostRepo repository, PostRepo postRepo, ApplicationEventPublisher eventPublisher, MeterRegistry registry) {
         super(repository);
+        this.postCounter = registry.counter("post-counter");
         this.postRepo = postRepo;
         this.eventPublisher = eventPublisher;
     }
@@ -91,6 +94,7 @@ public class PostService extends GeneralCrudService<Post, PostRepo>{
     public Post save(Post post) {
         Post save = super.save(post);
         eventPublisher.publishEvent(new PostEvent(post));
+        postCounter.increment();
         return save;
     }
 }

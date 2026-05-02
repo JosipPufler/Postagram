@@ -2,6 +2,7 @@ package hr.algebra.postagram.models;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,15 +23,15 @@ public class Package {
     @Column(unique = true, nullable = false)
     private String name;
 
-    @NotEmpty
+    @NotNull
     @Column(nullable = false)
     private Integer maxUploads;
 
-    @NotEmpty
+    @NotNull
     @Column(nullable = false)
     private Long maxUploadSize;
 
-    @NotEmpty
+    @NotNull
     @Column(nullable = false)
     private Double price;
 

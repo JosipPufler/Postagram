@@ -1,24 +1,14 @@
 package hr.algebra.postagram.models.dtos;
 
-import hr.algebra.postagram.models.Hashtag;
-import hr.algebra.postagram.models.Post;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
+@Builder
 public class PostDto {
-    public PostDto(Post post){
-        id = post.getId();
-        description = post.getDescription();
-        author = post.getUser().getUsername();
-        hashtags = post.getHashtags().stream().map(Hashtag::toString).toList();
-        postTime = post.getPostedAt();
-        aspectRatio = post.getAspectRatio();
-        storageType = post.getStorageType();
-    }
-
     private Long id;
     private String description;
     private String image;

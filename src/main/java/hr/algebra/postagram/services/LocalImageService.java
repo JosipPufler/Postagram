@@ -17,6 +17,11 @@ public class LocalImageService implements ImageService {
     }
 
     @Override
+    public String getStorageType() {
+        return "db-storage";
+    }
+
+    @Override
     public String store(byte[] data, String contentType) {
         Image img = new Image();
         img.setImage(data);

@@ -42,8 +42,6 @@ public class LoginHandler implements AuthenticationSuccessHandler {
             return;
         }
 
-
-
         String ipAddress = request.getRemoteAddr();
         User user = byUsername.get();
         publisher.publishEvent(new LoginEvent(user, ipAddress));

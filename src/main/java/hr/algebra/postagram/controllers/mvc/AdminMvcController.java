@@ -148,8 +148,9 @@ public class AdminMvcController {
             String store = post.getImageId();
 
             if (postForm.getImage() != null){
-                store = imageStorageRouter.getWriter().store(postForm.getImage().getBytes(), postForm.getImage().getContentType());
-                post.setStorageType(imageStorageRouter.getStorageType());
+                ImageService writer = imageStorageRouter.getWriter();
+                store = writer.store(postForm.getImage().getBytes(), postForm.getImage().getContentType());
+                post.setStorageType(writer.getStorageType());
                 imageLoader.deleteImage(post);
             }
 

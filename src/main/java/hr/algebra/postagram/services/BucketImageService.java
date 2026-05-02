@@ -22,6 +22,11 @@ public class BucketImageService implements ImageService {
     }
 
     @Override
+    public String getStorageType() {
+        return "s3-storage";
+    }
+
+    @Override
     public String store(byte[] data, String contentType) {
         String key = UUID.randomUUID().toString();
 

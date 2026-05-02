@@ -67,7 +67,7 @@ public class Mapper {
                     .description(postForm.getDescription())
                     .postedAt(LocalDateTime.now())
                     .user(user)
-                    .storageType(imageStorageRouter.getStorageType())
+                    .storageType(imageStorageRouter.getWriter().getStorageType())
                     .build();
             return Optional.of(post);
         } catch (IOException e) {
@@ -84,7 +84,16 @@ public class Mapper {
     }
 
     public PostDto postToDto(Post post) {
-        return new PostDto(post);
+        return PostDto.builder()
+                .id(post.getId())
+                .description(post.getDescription())
+                .author(post.getUser().getUsername())
+                .hashtags(post.getHashtags().stream().map(Hashtag::toString).toList())
+                .postTime(post.getPostedAt())
+                .aspectRatio(post.getAspectRatio())
+                .storageType(post.getStorageType())
+                .image(post.getImageId())
+                .build();
     }
 
     public EventDto eventToDto(Event event) {

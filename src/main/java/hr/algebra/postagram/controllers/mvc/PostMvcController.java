@@ -95,6 +95,7 @@ public class PostMvcController {
         if (userById.isEmpty()) {
             return REDIRECT_TO_LOGIN;
         }
+
         Page<Post> paged = postService.findByUserPaged(userById.get(), page, size);
 
         model.addAttribute(MODEL_ATTRIBUTE_PAGES, paged.getTotalPages());
@@ -116,8 +117,9 @@ public class PostMvcController {
             String store = post.getImageId();
 
             if (postForm.getImage() != null){
-                store = imageStorageRouter.getWriter().store(postForm.getImage().getBytes(), postForm.getImage().getContentType());
-                post.setStorageType(imageStorageRouter.getStorageType());
+                ImageService writer = imageStorageRouter.getWriter();
+                store = writer.store(postForm.getImage().getBytes(), postForm.getImage().getContentType());
+                post.setStorageType(writer.getStorageType());
                 imageLoader.deleteImage(post);
             }
 
