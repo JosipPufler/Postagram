@@ -1,10 +1,13 @@
 import { loadImage } from './imageEditor.js'
-import {publishPostClosedEvent, publishPostOpenEvent,} from './listener.js'
+import {publishPostClosedEvent, publishPostOpenEvent, getCookie} from './listener.js'
 
 const createPostModalSelector = '#createPostModal'
 const postModalSelector = '#postModal'
 const formatSelector = '#format'
 const hashtagsSelector = '#hashtags'
+const commentInput = document.getElementById("commentInput");
+const commentsList = document.getElementById("commentsList");
+const submitCommentBtn = document.getElementById("submitCommentBtn");
 let cropper;
 let openedAt
 let postId
@@ -30,6 +33,7 @@ function openPostModal(img) {
     const month = date.toLocaleString('default', { month: 'long' });
     document.getElementById("postModalDate").textContent = date.getHours() + ":" +  String(date.getMinutes()).padStart(2, "0") + ", " + String(date.getDate() + 1).padStart(2, "0") + " " + month + " " + date.getFullYear()
     document.getElementById("postModalHashtags").textContent = img.dataset.hashtags
+    loadComments(postId)
 
     $(postModalSelector).modal('show')
     publishPostOpenEvent(postId)
@@ -54,6 +58,72 @@ function initSelect2() {
     });
 }
 
+function loadComments(postId) {
+    fetch(`/rest/public/comment/${postId}`, {
+        headers: {
+            "Authorization": "Bearer " + getCookie(),
+            "Content-Type": "application/json"
+        },
+    })
+        .then(res => res.json())
+        .then(comments => {
+            // latest first
+            console.log(comments);
+            comments.sort((a, b) =>
+                new Date(b.postedAt) - new Date(a.postedAt)
+            );
+
+            renderComments(comments);
+        });
+}
+
+function renderComments(comments) {
+    commentsList.innerHTML = "";
+
+    if (!comments.length) {
+        commentsList.innerHTML = "<p class='text-muted'>No comments yet.</p>";
+        return;
+    }
+
+    comments.forEach(c => {
+        const date = new Date(c.postedAt);
+
+        const el = document.createElement("div");
+        el.className = "border rounded p-2 mb-2 text-start";
+
+        el.innerHTML = `
+            <div class="d-flex justify-content-between">
+                <strong>${c.username}</strong>
+                <small class="text-muted">
+                    ${date.toLocaleString()}
+                </small>
+            </div>
+            <div>${c.content}</div>
+        `;
+
+        commentsList.appendChild(el);
+    });
+}
+
+function postComment(postId) {
+    const content = commentInput.value.trim();
+    if (!content) return;
+
+    fetch(`/rest/public/comment/${postId}`, {
+        method: "POST",
+        headers: {
+            "Authorization": "Bearer " + getCookie(),
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ content })
+    })
+        .then(res => {
+            if (!res.ok) throw new Error("Failed to post comment");
+            commentInput.value = "";
+            loadComments(postId);
+        });
+}
+
 $(document).ready(function() {
     initSelect2()
 });
@@ -63,6 +133,10 @@ document.addEventListener("DOMContentLoaded", () => {
         tile.addEventListener("click", () => openPostModal(tile));
         console.log(tile)
     });
+});
+
+submitCommentBtn.addEventListener("click", () => {
+    postComment(postId);
 });
 
 document.getElementById("imageInput").addEventListener("change", function (e) {

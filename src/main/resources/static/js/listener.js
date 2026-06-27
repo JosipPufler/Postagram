@@ -21,7 +21,7 @@ class EventBus {
 
 console.log(getCookie())
 
-function getCookie() {
+export function getCookie() {
     return document.cookie
         .split("; ")
         .find(row => row.startsWith("JWT_TOKEN" + "="))

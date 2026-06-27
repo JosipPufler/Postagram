@@ -112,4 +112,8 @@ public class Mapper {
         PackageUsageInfoDto packageUsageInfoDto = new PackageUsageInfoDto(user);
         return packageUsageInfoDto;
     }
+
+    public CommentDto commentToDto(Comment comment) {
+        return new CommentDto(comment.getUser().getUsername(), comment.getContent(), comment.getPostedAt());
+    }
 }

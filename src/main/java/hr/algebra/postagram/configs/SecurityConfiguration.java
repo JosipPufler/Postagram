@@ -1,8 +1,6 @@
 package hr.algebra.postagram.configs;
 
 import hr.algebra.postagram.services.CustomUserDetailsService;
-import hr.algebra.postagram.services.OAuth2FailHandler;
-import hr.algebra.postagram.services.OAuth2SuccessHandler;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,8 +30,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 @AllArgsConstructor
 public class SecurityConfiguration {
     private final CustomUserDetailsService userDetailsService;
-    private final OAuth2SuccessHandler successHandler;
-    private final OAuth2FailHandler failHandler;
     private final AuthEntryPoint unauthorizedHandler;
     private final TokenFilter tokenFilter;
     private final LoginHandler loginHandler;
@@ -84,9 +80,6 @@ public class SecurityConfiguration {
                         .failureUrl("/auth/login?error")
                         .successHandler(loginHandler)
                         .permitAll())
-                .oauth2Login(oauth2 -> oauth2
-                        .successHandler(successHandler)
-                        .failureHandler(failHandler))
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessHandler(logoutHandler)
