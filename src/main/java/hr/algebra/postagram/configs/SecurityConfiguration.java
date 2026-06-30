@@ -40,7 +40,7 @@ public class SecurityConfiguration {
     private final LogoutHandler logoutHandler;
     private final PasswordEncoder passwordEncoder;
 
-    private static final String[] AUTH_WHITELIST = { "/auth/**", "/logout", "/mvc/public/**", "/rest/public/**", "/" };
+    private static final String[] AUTH_WHITELIST = { "/actuator/**", "/auth/**", "/logout", "/mvc/public/**", "/rest/public/**", "/" };
     private static final String[] ADMIN_LIST = { "/mvc/admin/**" };
 
     @Bean

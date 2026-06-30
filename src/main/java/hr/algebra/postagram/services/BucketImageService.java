@@ -1,6 +1,7 @@
 package hr.algebra.postagram.services;
 
 import hr.algebra.postagram.models.ImageData;
+import hr.algebra.postagram.models.StorageTypeEnum;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -19,6 +20,11 @@ public class BucketImageService implements ImageService {
 
     public BucketImageService(S3Client s3) {
         this.s3 = s3;
+    }
+
+    @Override
+    public StorageTypeEnum getStorageType() {
+        return StorageTypeEnum.S3;
     }
 
     @Override

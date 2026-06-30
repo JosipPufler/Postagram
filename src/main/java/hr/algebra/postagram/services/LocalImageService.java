@@ -2,6 +2,7 @@ package hr.algebra.postagram.services;
 
 import hr.algebra.postagram.models.Image;
 import hr.algebra.postagram.models.ImageData;
+import hr.algebra.postagram.models.StorageTypeEnum;
 import hr.algebra.postagram.repositories.ImageRepo;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,11 @@ public class LocalImageService implements ImageService {
 
     public LocalImageService(ImageRepo repo) {
         this.repo = repo;
+    }
+
+    @Override
+    public StorageTypeEnum getStorageType() {
+        return StorageTypeEnum.DB;
     }
 
     @Override

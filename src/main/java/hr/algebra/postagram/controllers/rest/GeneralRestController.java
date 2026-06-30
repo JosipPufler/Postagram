@@ -15,14 +15,14 @@ import java.util.Optional;
 @RequestMapping("/rest")
 public class GeneralRestController {
     private final PostService postService;
-    private final ImageLoader imageLoader;
+    private final ImageStorageRouter imageStorageRouter;
     private final EventService eventService;
     private final EventTypeService eventTypeService;
     private final UserService userService;
 
-    public GeneralRestController(PostService postService, ImageLoader imageLoader, EventService eventService, EventTypeService eventTypeService, UserService userService) {
+    public GeneralRestController(PostService postService, ImageStorageRouter imageStorageRouter, EventService eventService, EventTypeService eventTypeService, UserService userService) {
         this.postService = postService;
-        this.imageLoader = imageLoader;
+        this.imageStorageRouter = imageStorageRouter;
         this.eventService = eventService;
         this.eventTypeService = eventTypeService;
         this.userService = userService;
@@ -37,7 +37,7 @@ public class GeneralRestController {
         }
         Post post = byId.get();
 
-        Optional<ImageData> imageData = imageLoader.loadImage(post);
+        Optional<ImageData> imageData = imageStorageRouter.loadImage(post);
         if (imageData.isEmpty()) {
             return ResponseEntity.notFound().build();
         }

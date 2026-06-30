@@ -31,9 +31,9 @@ public class AdminMvcController {
     private final PostService postService;
     private final HashtagService hashtagService;
     private final ImageStorageRouter imageStorageRouter;
-    private final ImageLoader imageLoader;
     private final ApplicationEventPublisher publisher;
     private final Mapper mapper;
+
     private static final String MODEL_ATTRIBUTE_LOGS = "logs";
     private static final String MODEL_ATTRIBUTE_USER_EDIT = "userEdit";
     private static final String MODEL_ATTRIBUTE_USERNAME = "username";
@@ -51,14 +51,13 @@ public class AdminMvcController {
     private static final String MODEL_ATTRIBUTE_USER_DTO = "userDto";
     private static final String MODEL_ATTRIBUTE_PACKAGE_USAGE = "packageUsage";
 
-    public AdminMvcController(EventService eventService, PackageService packageService, UserService userService, PostService postService, HashtagService hashtagService, ImageStorageRouter imageStorageRouter, ImageLoader imageLoader, ApplicationEventPublisher publisher, Mapper mapper) {
+    public AdminMvcController(EventService eventService, PackageService packageService, UserService userService, PostService postService, HashtagService hashtagService, ImageStorageRouter imageStorageRouter, ApplicationEventPublisher publisher, Mapper mapper) {
         this.eventService = eventService;
         this.packageService = packageService;
         this.userService = userService;
         this.postService = postService;
         this.hashtagService = hashtagService;
         this.imageStorageRouter = imageStorageRouter;
-        this.imageLoader = imageLoader;
         this.publisher = publisher;
         this.mapper = mapper;
     }
@@ -148,9 +147,9 @@ public class AdminMvcController {
             String store = post.getImageId();
 
             if (postForm.getImage() != null){
-                store = imageStorageRouter.getWriter().store(postForm.getImage().getBytes(), postForm.getImage().getContentType());
-                post.setStorageType(imageStorageRouter.getStorageType());
-                imageLoader.deleteImage(post);
+                store = imageStorageRouter.storeImage(postForm.getImage().getBytes(), postForm.getImage().getContentType());
+                post.setStorageType(imageStorageRouter.getStorageType().name());
+                imageStorageRouter.deleteImage(post);
             }
 
             post.setImageId(store);
