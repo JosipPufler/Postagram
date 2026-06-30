@@ -7,7 +7,6 @@ import hr.algebra.postagram.models.User;
 import hr.algebra.postagram.models.dtos.PostDto;
 import hr.algebra.postagram.models.dtos.PostForm;
 import hr.algebra.postagram.models.dtos.PostSearchForm;
-import hr.algebra.postagram.models.events.PostEvent;
 import hr.algebra.postagram.models.events.UserPostUpdate;
 import hr.algebra.postagram.services.*;
 import jakarta.validation.Valid;
@@ -33,7 +32,6 @@ public class PostMvcController {
     private final UserService userService;
     private final ApplicationEventPublisher publisher;
     private final ImageStorageRouter imageStorageRouter;
-    private final ImageLoader imageLoader;
     private final Mapper mapper;
 
     private static final String MODEL_ATTRIBUTE_POST_FORM = "postForm";
@@ -50,13 +48,12 @@ public class PostMvcController {
     private static final String MODEL_ATTRIBUTE_CURRENT_PAGE = "currentPage";
 
 
-    public PostMvcController(PostService postService, HashtagService hashtagService, UserService userService, ApplicationEventPublisher publisher, ImageStorageRouter imageStorageRouter, ImageLoader imageLoader, Mapper mapper) {
+    public PostMvcController(PostService postService, HashtagService hashtagService, UserService userService, ApplicationEventPublisher publisher, ImageStorageRouter imageStorageRouter, Mapper mapper) {
         this.postService = postService;
         this.hashtagService = hashtagService;
         this.userService = userService;
         this.publisher = publisher;
         this.imageStorageRouter = imageStorageRouter;
-        this.imageLoader = imageLoader;
         this.mapper = mapper;
     }
 
@@ -117,10 +114,9 @@ public class PostMvcController {
             String store = post.getImageId();
 
             if (postForm.getImage() != null){
-                ImageService writer = imageStorageRouter.getWriter();
-                store = writer.store(postForm.getImage().getBytes(), postForm.getImage().getContentType());
-                post.setStorageType(writer.getStorageType());
-                imageLoader.deleteImage(post);
+                store = imageStorageRouter.storeImage(postForm.getImage().getBytes(), postForm.getImage().getContentType());
+                post.setStorageType(imageStorageRouter.getStorageType().name());
+                imageStorageRouter.deleteImage(post);
             }
 
             post.setImageId(store);

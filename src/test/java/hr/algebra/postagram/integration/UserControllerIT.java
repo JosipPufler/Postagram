@@ -6,6 +6,7 @@ import hr.algebra.postagram.models.Package;
 import hr.algebra.postagram.models.User;
 import hr.algebra.postagram.repositories.PackageRepo;
 import hr.algebra.postagram.repositories.UserRepo;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -27,12 +29,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class UserControllerIT {
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private PackageRepo packageRepository;
 
     @Autowired
     private UserRepo userRepository;
@@ -44,17 +44,13 @@ class UserControllerIT {
         aPackage = packageRepo.saveAndFlush(PackageHelper.getUserPackage());
     }
 
-    @BeforeEach
-    void setUp() {
-        userRepository.deleteAll();
-    }
-
     @Test
     void shouldShowRegisterForm() throws Exception {
         mockMvc.perform(get("/auth/register"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("register"))
                 .andExpect(model().attributeExists("packages"))
+                .andExpect(model().attribute("packages", hasSize(1)))
                 .andExpect(model().attributeExists("registrationForm"));
     }
 
@@ -77,7 +73,7 @@ class UserControllerIT {
     }
 
     @Test
-    void shouldRegisterUserUnsuccessfullyDueToDuplicateUsername() throws Exception {
+    void shouldNotRegisterUserUnsuccessfullyDueToDuplicateUsername() throws Exception {
         userRepository.saveAndFlush(UserHelper.getDefaultUser());
 
         mockMvc.perform(post("/auth/register")

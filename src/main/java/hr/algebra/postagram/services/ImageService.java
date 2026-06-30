@@ -1,11 +1,12 @@
 package hr.algebra.postagram.services;
 
 import hr.algebra.postagram.models.ImageData;
+import hr.algebra.postagram.models.StorageTypeEnum;
 
 import java.util.Optional;
 
 public interface ImageService {
-    String getStorageType();
+    StorageTypeEnum getStorageType();
 
     String store(byte[] data, String contentType);
 

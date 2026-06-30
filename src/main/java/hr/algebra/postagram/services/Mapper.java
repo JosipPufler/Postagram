@@ -20,15 +20,15 @@ public class Mapper {
     private final RoleService roleService;
     private final HashtagService hashtagService;
     private final PackageService packageService;
-    private final ImageStorageRouter imageStorageRouter;
     private final UserService userService;
+    private final ImageStorageRouter imageStorageRouter;
 
-    public Mapper(RoleService roleService, HashtagService hashtagService, PackageService packageService, ImageStorageRouter imageStorageRouter, UserService userService){
+    public Mapper(RoleService roleService, HashtagService hashtagService, PackageService packageService, UserService userService, ImageStorageRouter imageStorageRouter){
         this.roleService = roleService;
         this.hashtagService = hashtagService;
         this.packageService = packageService;
-        this.imageStorageRouter = imageStorageRouter;
         this.userService = userService;
+        this.imageStorageRouter = imageStorageRouter;
     }
 
     public UserDto userToDto(User user) {
@@ -60,14 +60,14 @@ public class Mapper {
             Post post = Post.builder()
                     .id(postForm.getId())
                     .hashtags(postForm.getHashtags().stream().map(x -> hashtagService.findByNameOrCreate(x, user)).collect(Collectors.toCollection(HashSet::new)))
-                    .imageId(imageStorageRouter.getWriter().store(postForm.getImage().getBytes(), postForm.getImage().getContentType()))
+                    .imageId(imageStorageRouter.storeImage(postForm.getImage().getBytes(), postForm.getImage().getContentType()))
                     .imageWidth(buffered.getWidth())
                     .imageHeight(buffered.getHeight())
                     .aspectRatio((double)buffered.getWidth()/buffered.getHeight())
                     .description(postForm.getDescription())
                     .postedAt(LocalDateTime.now())
                     .user(user)
-                    .storageType(imageStorageRouter.getWriter().getStorageType())
+                    .storageType(imageStorageRouter.getStorageType().name())
                     .build();
             return Optional.of(post);
         } catch (IOException e) {

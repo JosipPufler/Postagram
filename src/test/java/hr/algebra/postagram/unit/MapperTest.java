@@ -32,13 +32,7 @@ class MapperTest {
     private RoleService roleService;
 
     @MockitoBean
-    private HashtagService hashtagService;
-
-    @MockitoBean
     private PackageService packageService;
-
-    @MockitoBean
-    private ImageStorageRouter imageStorageRouter;
 
     @MockitoBean
     private UserService userService;
