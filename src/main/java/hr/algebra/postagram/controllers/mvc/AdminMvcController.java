@@ -136,31 +136,16 @@ public class AdminMvcController {
     }
 
     @PostMapping("edit")
-    public String updateUser(@Valid @ModelAttribute(MODEL_ATTRIBUTE_POST_FORM)PostForm postForm) throws IOException {
+    public String updatePost(@Valid @ModelAttribute(MODEL_ATTRIBUTE_POST_FORM)PostForm postForm) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         Long userId = ((CustomUserDetails) auth.getPrincipal()).getId();
         Optional<User> adminById = userService.findById(userId);
 
         Optional<Post> byId = postService.findById(postForm.getId());
         if(byId.isPresent() && adminById.isPresent()){
-            Post post = byId.get();
-            String store = post.getImageId();
+            postService.updateWithPipeline(postForm);
 
-            if (postForm.getImage() != null){
-                store = imageStorageRouter.storeImage(postForm.getImage().getBytes(), postForm.getImage().getContentType());
-                post.setStorageType(imageStorageRouter.getStorageType().name());
-                imageStorageRouter.deleteImage(post);
-            }
-
-            post.setImageId(store);
-            post.updateImageData(postForm.getImage());
-            post.setDescription(postForm.getDescription());
-            post.setHashtags(postForm.getHashtags().stream().map(x -> hashtagService.findByNameOrCreate(x, post.getUser())).collect(Collectors.toSet()));
-            postService.save(post);
-
-            publisher.publishEvent(new AdminPostUpdate(adminById.get(), byId.get()));
-
-            return "redirect:/mvc/admin/users/"+post.getUser().getId().toString();
+            return "redirect:/mvc/admin/users/"+byId.get().getUser().getId().toString();
         }
         return "redirect:/mvc/admin/users";
     }

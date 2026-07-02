@@ -1,0 +1,16 @@
+services:
+  spring-app:
+    build: .
+    container_name: spring-app
+    ports:
+      - "8080:8080"
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - spring-app

@@ -1,8 +1,6 @@
 package hr.algebra.postagram.configs;
 
 import hr.algebra.postagram.services.CustomUserDetailsService;
-import hr.algebra.postagram.services.OAuth2FailHandler;
-import hr.algebra.postagram.services.OAuth2SuccessHandler;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +18,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -32,8 +29,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 @AllArgsConstructor
 public class SecurityConfiguration {
     private final CustomUserDetailsService userDetailsService;
-    private final OAuth2SuccessHandler successHandler;
-    private final OAuth2FailHandler failHandler;
     private final AuthEntryPoint unauthorizedHandler;
     private final TokenFilter tokenFilter;
     private final LoginHandler loginHandler;
@@ -62,8 +57,6 @@ public class SecurityConfiguration {
     @Order(2)
     public SecurityFilterChain mvcChain(HttpSecurity http) throws Exception {
         http.userDetailsService(userDetailsService)
-                .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .authorizeHttpRequests(authorize ->
                                 authorize
                                         .requestMatchers(AUTH_WHITELIST).permitAll()
@@ -84,9 +77,6 @@ public class SecurityConfiguration {
                         .failureUrl("/auth/login?error")
                         .successHandler(loginHandler)
                         .permitAll())
-                .oauth2Login(oauth2 -> oauth2
-                        .successHandler(successHandler)
-                        .failureHandler(failHandler))
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessHandler(logoutHandler)

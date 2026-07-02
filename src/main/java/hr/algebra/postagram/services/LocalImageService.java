@@ -28,7 +28,7 @@ public class LocalImageService implements ImageService {
         img.setImage(data);
         img.setContentType(contentType);
         repo.save(img);
-        return img.getId().toString();
+        return img.getId();
     }
 
     @Override
